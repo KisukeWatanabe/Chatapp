@@ -6,6 +6,11 @@ import socketManager from '../socketManager.js'
 const userName = inject("userName")
 // #endregion
 
+// #ログインが完成するまでの処置
+if(userName.value === "" ) {
+  userName.value = "ゲスト"
+  }
+
 // #region local variable
 const socket = socketManager.getInstance()
 // #endregion
@@ -24,7 +29,8 @@ onMounted(() => {
 // #region browser event handler
 // 投稿メッセージをサーバに送信する
 const onPublish = () => {
-  socket.emit("publishEvent", chatContent.value)
+  const message = userName.value +  "さん：" + chatContent.value
+  socket.emit("publishEvent", message)
   // 入力欄を初期化
   chatContent.value = ""
 }
@@ -37,7 +43,7 @@ const onExit = () => {
 // メモを画面上に表示する
 const onMemo = () => {
   // メモの内容を表示
-
+  chatList.unshift(userName.value +"さんのメモ：" + chatContent.value)
   // 入力欄を初期化
   chatContent.value = ""
 }
@@ -56,7 +62,7 @@ const onReceiveExit = (data) => {
 
 // サーバから受信した投稿メッセージを画面上に表示する
 const onReceivePublish = (data) => {
-  chatList.push(data)
+  chatList.unshift(data)
 }
 // #endregion
 
@@ -93,7 +99,7 @@ const registerSocketEvent = () => {
       </div>
       <div class="mt-5" v-if="chatList.length !== 0">
         <ul>
-          <li class="item mt-4" v-for="(chat, i) in chatList" :key="i">{{ chat }}</li>
+          <li class="item mt-4" v-for="(chat, i) in chatList" :key="i" >{{ chat }}</li>
         </ul>
       </div>
     </div>
