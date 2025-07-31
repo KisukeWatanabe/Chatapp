@@ -1,8 +1,12 @@
 <script setup>
-import { inject, ref, reactive, onMounted, nextTick } from "vue"
+import { inject, ref, reactive, onMounted } from "vue"
+import { useRouter } from "vue-router"
 import socketManager from '../socketManager.js'
 
 const userName = inject("userName")
+// 遷移用ルータ
+const router = useRouter()
+// #endregion
 
 if (userName.value === "") {
   userName.value = "ゲスト"
@@ -42,7 +46,7 @@ const onPublish = () => {
 }
 
 const onExit = () => {
-  socket.emit("exitEvent", userName.value)
+ socket.emit("exitEvent", userName.value)
   const log = userName.value + "さんが退室"
   logList.push(log)
 }
@@ -56,10 +60,23 @@ const onReceivePublish = (data) => {
     }
   })
 }
+const onChange = () => {
+  router.push({ name: "task" })
+}
 
-const onReceiveEnter = (name) => {
-  const log = name + "さんが入室"
-  logList.push(log)
+// メモを画面上に表示する
+const onMemo = () => {
+  // メモの内容を表示
+  chatList.unshift(userName.value +"さんのメモ：" + chatContent.value)
+  // 入力欄を初期化
+  chatContent.value = ""
+}
+// #endregion
+
+// #region socket event handler
+// サーバから受信した入室メッセージ画面上に表示する
+const onReceiveEnter = (data) => {
+  chatList.push(userName.value + "さんが入室しました")
 }
 
 const onReceiveExit = (name) => {
@@ -128,6 +145,12 @@ const registerSocketEvent = () => {
         <li v-for="(log, i) in logList" :key="i">{{ log }}</li>
       </ul>
     </div>
+    <router-link to="/" class="link">
+      <button type="button" class="button-normal button-exit" @click="onExit">退室する</button>
+    </router-link>
+    <router-link to="/task/" class="task">
+      <button type="button" class="button-normal" @click="onChange">タスクへ移動</button>
+    </router-link>
   </div>
 </template>
 
