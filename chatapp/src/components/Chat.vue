@@ -6,11 +6,6 @@ import socketManager from '../socketManager.js'
 const userName = inject("userName")
 // #endregion
 
-// #ログインが完成するまでの処置
-if(userName.value === "" ) {
-  userName.value = "ゲスト"
-  }
-
 // #region local variable
 const socket = socketManager.getInstance()
 // #endregion
@@ -52,12 +47,12 @@ const onMemo = () => {
 // #region socket event handler
 // サーバから受信した入室メッセージ画面上に表示する
 const onReceiveEnter = (data) => {
-  chatList.push(userName.value + "さんが入室しました")
+  chatList.unshift(data + "さんが入室しました")
 }
 
 // サーバから受信した退室メッセージを受け取り画面上に表示する
 const onReceiveExit = (data) => {
-  chatList.push(data.value + "さんが退出しました。")
+  chatList.unshift(data + "さんが退出しました。")
 }
 
 // サーバから受信した投稿メッセージを画面上に表示する
