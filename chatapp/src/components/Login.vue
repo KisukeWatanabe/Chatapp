@@ -36,8 +36,9 @@ const onEnter = () => {
 </script>
 
 <template>
-  <div class="mx-auto my-5 px-4">
-    <h1 class="text-h3 font-weight-medium">Vue.js Chat サンプル</h1>
+  <div class="mx-auto my-5 px-4 text-center">
+    <h1 class="text-h3 font-weight-medium">たすく はあくん</h1>
+    <img src="../images/image.png" width="500" height="300" style="position: fixed; top: 0; right: 0; z-index: -999;">
     <div class="mt-10">
       <p>ユーザー名</p>
       <input type="text" class="user-name-text" v-model="inputUserName"/>
