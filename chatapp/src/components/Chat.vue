@@ -76,7 +76,7 @@ const registerSocketEvent = () => {
 
   // 退室イベントを受け取ったら実行
   socket.on("exitEvent", (data) => {
-    onReceivePublish(data)
+    onReceiveExit(data)
   })
 
   // 投稿イベントを受け取ったら実行
