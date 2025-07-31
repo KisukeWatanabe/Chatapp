@@ -2,16 +2,15 @@
 import { inject, ref, reactive, onMounted, computed } from "vue"
 import { useRouter } from "vue-router"
 import socketManager from '../socketManager.js'
+import initSqlJs from 'sql.js'
+
 // #region global state
 const userName = inject("userName")
 // 遷移用ルータ
 const router = useRouter()
 // オブジェクトを仮定する
 // #endregion
-// #ログインが完成するまでの処置
-if(userName.value === "" ) {
-  userName.value = "ゲスト"
-  }
+
 // #region local variable
 const socket = socketManager.getInstance()
 // #endregion
@@ -19,6 +18,64 @@ const socket = socketManager.getInstance()
 const taskContent = ref("")
 // 初期タスク（投稿で追加）
 const tasks = ref([])
+//db用
+const taskDB = ref([])  // [{ id, taskName, members, progress, status }]
+
+//DB変数
+let db = null
+// localStorage キー
+const STORAGE_KEY = 'test-db-1'
+
+//非同期処理追加
+onMounted(async () => {
+  const SQL = await initSqlJs({ locateFile: file => `https://sql.js.org/dist/${file}` })
+  db = loadDatabase(SQL)
+  initSchema()
+  loadTasks()
+})
+//テーブル作成
+function initSchema() {
+  db.run(`CREATE TABLE IF NOT EXISTS taskDB (id INTEGER PRIMARY KEY AUTOINCREMENT, taskName TEXT, members TEXT, progress INTEGER, status TEXT);`)
+  console.log("Database schema initialized.")
+}
+//タスクをロードする関数
+function loadTasks() {
+  const result = db.exec('SELECT id, taskName, members, progress, status FROM taskDB')
+  taskDB.value = result[0]?.values ?? []
+    tasks.value = taskDB.value.map(row => ({
+    id: row[0],
+    name: row[1],
+    members: row[2],
+    progress: row[3],
+    status: row[4]
+  }))
+  console.log("Tasks loaded:", tasks.value)
+  console.log("TaskDB loaded:", taskDB.value)
+}
+
+function addTask(taskName) {
+  db.run('INSERT INTO taskDB (taskName, members, progress, status) VALUES (?,?,?,?)', [taskName.value, null,0, "未着手"])
+  //taskContent.value = taskName.value
+  console.log("AT Task added:", taskName.value)
+  loadTasks()
+  saveDatabase()
+}
+
+function saveDatabase() {
+  const data = db.export()
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(data)))
+}
+
+function loadDatabase(SQL) {
+  const saved = localStorage.getItem(STORAGE_KEY)
+  if (saved) {
+    const bytes = new Uint8Array(JSON.parse(saved))
+    return new SQL.Database(bytes)
+  }
+  return new SQL.Database()
+}
+
+
 // #endregion
 // #region lifecycle
 onMounted(() => {
@@ -43,12 +100,17 @@ const onChange = () => {
 const onPublish = () => {
   if (taskContent.value.trim() !== "") {
     tasks.value.push({
+      id: row[0],
       name: taskContent.value,
-      progress: 0
+      members: null,
+      progress: 0,
+      status: "未着"
     })
-    console.log(tasks.value)
+    addTask(taskContent)
+    console.log("OP Task added:", taskContent.value)
     taskContent.value = ""
   }
+  console.log()
 }
 // サーバから受信した投稿メッセージを画面上に表示する
 const onReceivePublish = (data) => {
@@ -107,6 +169,23 @@ const registerSocketEvent = () => {
             </li>
           </ul>
         </div>
+
+         <div class="mt-5" v-if="taskDB.length !== 0">
+          <ul>
+            <li class="item mt-4" v-for="(task, i) in taskDB" :key="i">
+            <div>{{ task[1] }}</div>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                v-model="task.progress"
+              />
+              <p>進捗：{{ task.progress }}%</p>
+            </li>
+          </ul>
+        </div>
+
         <div v-else>タスクがまだありません</div>
       タスク担当について
       </div>
