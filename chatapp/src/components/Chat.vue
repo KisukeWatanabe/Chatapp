@@ -1,5 +1,5 @@
 <script setup>
-import { inject, ref, reactive, onMounted } from "vue"
+import { inject, ref, reactive, onMounted, onBeforeUnmount } from "vue"
 import { useRouter } from "vue-router"
 import socketManager from '../socketManager.js'
 
@@ -74,6 +74,11 @@ const onReceiveExit = (name) => {
 }
 
 const registerSocketEvent = () => {
+  // ソケットを一回切っておく
+  socket.off("publishEvent")
+  socket.off("enterEvent")
+  socket.off("exitEvent")
+
   socket.on("publishEvent", (data) => {
     onReceivePublish(data)
   })
