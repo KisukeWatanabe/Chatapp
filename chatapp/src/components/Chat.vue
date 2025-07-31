@@ -127,11 +127,11 @@ const registerSocketEvent = () => {
             <button class="button-normal" @click="onPublish">送信</button>
           </div>
           <div class="right-button">
-            <router-link to="/task" class="link">
-              <button class="button-normal button-task" @click="onExit">タスク</button>
+            <router-link to="/task/" class="task">
+              <button type="button" class="button-normal" @click="onChange">タスクへ移動</button>
             </router-link>
             <router-link to="/" class="link">
-              <button class="button-normal button-exit" @click="onExit">退室する</button>
+              <button type="button" class="button-normal button-exit" @click="onExit">退室する</button>
             </router-link>
           </div>
         </div>
@@ -145,12 +145,6 @@ const registerSocketEvent = () => {
         <li v-for="(log, i) in logList" :key="i">{{ log }}</li>
       </ul>
     </div>
-    <router-link to="/" class="link">
-      <button type="button" class="button-normal button-exit" @click="onExit">退室する</button>
-    </router-link>
-    <router-link to="/task/" class="task">
-      <button type="button" class="button-normal" @click="onChange">タスクへ移動</button>
-    </router-link>
   </div>
 </template>
 
