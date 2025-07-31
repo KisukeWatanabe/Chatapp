@@ -73,7 +73,7 @@ const registerSocketEvent = () => {
 
 <template>
   <div class="mx-auto my-5 px-4 text-center">
-    <h1 class="text-h3 font-weight-medium">Vue.js タスク一覧</h1>
+    <h1 class="text-h3 font-weight-medium">タスク一覧</h1>
     <div class="mt-10">
       <p>ログインユーザ：{{ userName }}さん</p>
       <div class="wrapper1">
@@ -88,7 +88,6 @@ const registerSocketEvent = () => {
             <div class="mt-5">
               <button class="button-normal" @click="onPublish">投稿</button>
             </div>
-            タスク入力について
         </div>
       </div>
 
@@ -132,42 +131,129 @@ const registerSocketEvent = () => {
 </template>
 
 <style scoped>
-.link {
-  text-decoration: none;
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c&display=swap');
+
+* {
+  font-family: 'M PLUS Rounded 1c', 'Arial', 'Meiryo', sans-serif;
+  box-sizing: border-box;
 }
-.area {
-  width: 500px;
-  border: 1px solid #000;
-  margin-top: 8px;
+
+body {
+  background-color: #fffaf5;
 }
-.item {
-  display: block;
+
+/* 全体 */
+.mx-auto {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 16px;
+  background-color: #fffaf5;
 }
-.util-ml-8px {
-  margin-left: 8px;
+
+/* タイトル・ログインユーザー */
+h1 {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  color: #333;
 }
-.button-exit {
-  color: #000;
-  margin-top: 8px;
+
+.login-user {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 24px;
 }
-.progress-bar {
-  width: 100%;
-  height: 24px;
-  background-color: #eee;
+
+/* タスク進捗バー */
+.container {
+  background: #ffffffcc;
   border-radius: 12px;
-  overflow: hidden;
-  margin-top: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 0 6px rgba(0,0,0,0.1);
 }
-.progress-fill {
-  height: 100%;
+
+progress {
+  width: 100%;
+  height: 16px;
+  appearance: none;
+}
+
+progress::-webkit-progress-bar {
+  background-color: #eee;
+  border-radius: 8px;
+}
+
+progress::-webkit-progress-value {
   background-color: #4CAF50;
-  transition: width 0.3s ease;
+  border-radius: 8px;
+}
+
+/* タスク入力欄 */
+.area {
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  padding: 10px;
+  font-size: 14px;
+  margin-top: 12px;
+  resize: none;
+  background-color: #fff;
+}
+
+/* タスク一覧 */
+.item {
+  background: #ffffffdd;
+  border-radius: 12px;
+  box-shadow: 0 0 4px rgba(0,0,0,0.05);
+  padding: 16px;
+  margin-bottom: 16px;
+  text-align: left;
 }
 
 .assignee-input {
   margin: 6px 0;
-  padding: 4px;
-  border: 1px solid #aaa;
-  border-radius: 4px;
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 14px;
+  width: 100%;
+}
+
+/* スライダー */
+input[type="range"] {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* ボタンエリア */
+.button-normal {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 25px;
+  font-size: 14px;
+  cursor: pointer;
+  background-color: #ffa500;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.button-normal:hover {
+  background-color: #ff8800;
+}
+
+.button-exit {
+  background-color: #aaa;
+  margin-top: 16px;
+}
+
+.button-exit:hover {
+  background-color: #888;
+}
+
+/* リンクボタン */
+.link, .chat {
+  text-decoration: none;
+  margin-left: 8px;
 }
 </style>
