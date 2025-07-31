@@ -11,7 +11,7 @@ const router = useRouter()
 // #ログインが完成するまでの処置
 if(userName.value === "" ) {
   userName.value = "ゲスト"
-  }
+}
 // #region local variable
 const socket = socketManager.getInstance()
 // #endregion
@@ -19,7 +19,10 @@ const socket = socketManager.getInstance()
 const taskContent = ref("")
 // 初期タスク（投稿で追加）
 const tasks = ref([])
+// 編集モードとテキストモードを切り替えるための変数
+const editIndex = ref(null)
 // #endregion
+
 // #region lifecycle
 onMounted(() => {
   registerSocketEvent()
@@ -44,9 +47,9 @@ const onPublish = () => {
   if (taskContent.value.trim() !== "") {
     tasks.value.push({
       name: taskContent.value,
-      progress: 0
+      progress: 0,
+      assignee: "" // 担当者名の初期値
     })
-    console.log(tasks.value)
     taskContent.value = ""
   }
 }
@@ -91,24 +94,35 @@ const registerSocketEvent = () => {
             タスク入力について
         </div>
       </div>
+
       <div class="wrapper3">
         <div class="mt-5" v-if="tasks.length !== 0">
           <ul>
             <li class="item mt-4" v-for="(task, i) in tasks" :key="i">
-            <div>{{ task.name }}</div>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                step="1"
-                v-model="task.progress"
-              />
-              <p>進捗：{{ task.progress }}%</p>
-            </li>
+  <div>{{ task.name }}</div>
+
+  <!-- 担当者名（編集モード切替） -->
+  <div @click="editIndex = i" v-if="editIndex !== i">
+    担当者: {{ task.assignee || '（クリックして入力）' }}
+  </div>
+
+  <input
+    v-else
+    type="text"
+    v-model="task.assignee"
+    @blur="editIndex = null"
+    @keyup.enter="editIndex = null"
+    placeholder="担当者名を入力"
+    class="assignee-input"
+  />
+  
+  <!-- スライダー -->
+  <input type="range" min="0" max="100" step="1" v-model="task.progress" />
+  <p>進捗：{{ task.progress }}%</p>
+</li>
           </ul>
         </div>
         <div v-else>タスクがまだありません</div>
-      タスク担当について
       </div>
     </div>
     <router-link to="/" class="link">
@@ -156,5 +170,12 @@ const registerSocketEvent = () => {
   height: 100%;
   background-color: #4CAF50;
   transition: width 0.3s ease;
+}
+
+.assignee-input {
+  margin: 6px 0;
+  padding: 4px;
+  border: 1px solid #aaa;
+  border-radius: 4px;
 }
 </style>
