@@ -82,6 +82,7 @@ const onEnter = () => {
   box-shadow: 0 0 8px rgba(0,0,0,0.1);
 }
 
+
 .label {
   display: block;
   font-size: 18px;
