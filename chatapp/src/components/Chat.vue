@@ -59,23 +59,17 @@ const onChange = () => {
   router.push({ name: "task" })
 }
 
-// メモを画面上に表示する
-const onMemo = () => {
-  // メモの内容を表示
-  chatList.unshift(userName.value +"さんのメモ：" + chatContent.value)
-  // 入力欄を初期化
-  chatContent.value = ""
-}
+
 // #endregion
 
 // #region socket event handler
 // サーバから受信した入室メッセージ画面上に表示する
-const onReceiveEnter = (data) => {
-  chatList.push(userName.value + "さんが入室しました")
+const onReceiveEnter = (name) => {
+  const log = name + "さんが入室しました"
+  logList.push(log)
 }
-
 const onReceiveExit = (name) => {
-  const log = name + "さんが退室"
+  const log = name + "さんが退室しました"
   logList.push(log)
 }
 
@@ -98,7 +92,7 @@ const registerSocketEvent = () => {
   <div class="layout">
     <!-- チャットルームメイン -->
     <div class="chatroom-container">
-      <h1 class="title">はあくん チャットルーム</h1>
+      <h1 class="title">たすく はあくん チャットルーム</h1>
       <p class="login-user">ログインユーザ：{{ userName }}さん</p>
 
       <div class="chat-list" ref="chatListRef">
