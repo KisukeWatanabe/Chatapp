@@ -75,7 +75,7 @@ const registerSocketEvent = () => {
   <div class="mx-auto my-5 px-4 text-center">
     <h1 class="text-h3 font-weight-medium">タスク一覧</h1>
     <div class="mt-10">
-      <p>ログインユーザ：{{ userName }}さん</p>
+      <p>ログインユーザー：{{ userName }}さん</p>
       <div class="wrapper1">
         <div class="container">
           <p>全体の進捗: {{ overallProgress }}%</p>
