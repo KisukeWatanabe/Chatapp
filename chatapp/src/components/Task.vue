@@ -10,11 +10,6 @@ const userName = inject("userName")
 const router = useRouter()
 // #endregion
 
-// #ログインが完成するまでの処置
-if(userName.value === "" ) {
-  userName.value = "ゲスト"
-  }
-
 // #region local variable
 const socket = socketManager.getInstance()
 // #endregion
@@ -34,7 +29,7 @@ onMounted(() => {
 // 投稿メッセージをサーバに送信する
 const onPublish = () => {
   const message = userName.value +  "さん：" + chatContent.value
-  socket.emit("publishEvent", message)
+  socket.emit("publishEvent", messag)
   // 入力欄を初期化
   chatContent.value = ""
 }
