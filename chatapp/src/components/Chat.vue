@@ -1,38 +1,62 @@
 <script setup>
 import { inject, ref, reactive, onMounted } from "vue"
+import { useRouter } from "vue-router"
 import socketManager from '../socketManager.js'
 
-// #region global state
 const userName = inject("userName")
+// 遷移用ルータ
+const router = useRouter()
 // #endregion
 
-// #region local variable
+
 const socket = socketManager.getInstance()
-// #endregion
 
-// #region reactive variable
 const chatContent = ref("")
-const chatList = reactive([])
-// #endregion
+const chatList = reactive([])  // [{ name, time, message }]
+const logList = reactive([])   // ["ゲストさんが入室", "山田さんが退出"...]
 
-// #region lifecycle
+const chatListRef = ref(null)  // チャット欄のDOM参照
+
 onMounted(() => {
   registerSocketEvent()
 })
-// #endregion
 
-// #region browser event handler
-// 投稿メッセージをサーバに送信する
 const onPublish = () => {
-  const message = userName.value +  "さん：" + chatContent.value
-  socket.emit("publishEvent", message)
-  // 入力欄を初期化
+  const now = new Date()
+  const formatter = new Intl.DateTimeFormat('ja-JP', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+  const time = formatter.format(now)
+
+  const payload = {
+    name: userName.value,
+    time: time,
+    message: chatContent.value
+  }
+
+  socket.emit("publishEvent", payload)
   chatContent.value = ""
 }
 
-// 退室メッセージをサーバに送信する
 const onExit = () => {
-  socket.emit("exitEvent",userName.value)
+ socket.emit("exitEvent", userName.value)
+}
+
+const onReceivePublish = (data) => {
+  chatList.push(data)
+
+  nextTick(() => {
+    if (chatListRef.value) {
+      chatListRef.value.scrollTop = chatListRef.value.scrollHeight
+    }
+  })
+}
+const onChange = () => {
+  router.push({ name: "task" })
 }
 
 // メモを画面上に表示する
@@ -47,84 +71,202 @@ const onMemo = () => {
 // #region socket event handler
 // サーバから受信した入室メッセージ画面上に表示する
 const onReceiveEnter = (data) => {
-  chatList.unshift(data + "さんが入室しました")
+  chatList.push(userName.value + "さんが入室しました")
 }
 
-// サーバから受信した退室メッセージを受け取り画面上に表示する
-const onReceiveExit = (data) => {
-  chatList.unshift(data + "さんが退出しました。")
+const onReceiveExit = (name) => {
+  const log = name + "さんが退室"
+  logList.push(log)
 }
 
-// サーバから受信した投稿メッセージを画面上に表示する
-const onReceivePublish = (data) => {
-  chatList.unshift(data)
-}
-// #endregion
-
-// #region local methods
-// イベント登録をまとめる
 const registerSocketEvent = () => {
-  // 入室イベントを受け取ったら実行
-  socket.on("enterEvent", (data) => {
-    onReceiveEnter(data)
-  })
-
-  // 退室イベントを受け取ったら実行
-  socket.on("exitEvent", (data) => {
-    onReceiveExit(data)
-  })
-
-  // 投稿イベントを受け取ったら実行
   socket.on("publishEvent", (data) => {
-   onReceivePublish(data)
+    onReceivePublish(data)
+  })
+
+  socket.on("enterEvent", (name) => {
+    onReceiveEnter(name)
+  })
+
+  socket.on("exitEvent", (name) => {
+    onReceiveExit(name)
   })
 }
-// #endregion
 </script>
 
 <template>
-  <div class="mx-auto my-5 px-4">
-    <h1 class="text-h3 font-weight-medium">Vue.js Chat チャットルーム</h1>
-    <div class="mt-10">
-      <p>ログインユーザ：{{ userName }}さん</p>
-      <textarea v-model="chatContent" variant="outlined" placeholder="投稿文を入力してください" rows="4" class="area"></textarea>
-      <div class="mt-5">
-        <button class="button-normal" @click="onPublish">投稿</button>
-        <button class="button-normal util-ml-8px" @click="onMemo">メモ</button>
-      </div>
-      <div class="mt-5" v-if="chatList.length !== 0">
+  <div class="layout">
+    <!-- チャットルームメイン -->
+    <div class="chatroom-container">
+      <h1 class="title">はあくん チャットルーム</h1>
+      <p class="login-user">ログインユーザ：{{ userName }}さん</p>
+
+      <div class="chat-list" ref="chatListRef">
         <ul>
-          <li class="item mt-4" v-for="(chat, i) in chatList" :key="i" >{{ chat }}</li>
+          <li class="item" v-for="(chat, i) in chatList" :key="i">
+            <small class="meta">{{ chat.name }}（{{ chat.time }}）</small><br />
+            {{ chat.message }}
+          </li>
         </ul>
       </div>
+
+      <div class="chat-footer">
+        <textarea
+          v-model="chatContent"
+          placeholder="メッセージを入力してください"
+          rows="2"
+          class="textarea"
+        ></textarea>
+        <div class="button-area">
+          <div class="left-buttons">
+            <button class="button-normal" @click="onPublish">送信</button>
+          </div>
+          <div class="right-button">
+            <router-link to="/task/" class="task">
+              <button type="button" class="button-normal" @click="onChange">タスクへ移動</button>
+            </router-link>
+            <router-link to="/" class="link">
+              <button type="button" class="button-normal button-exit" @click="onExit">退室する</button>
+            </router-link>
+          </div>
+        </div>
+      </div>
     </div>
-    <router-link to="/" class="link">
-      <button type="button" class="button-normal button-exit" @click="onExit">退室する</button>
-    </router-link>
+
+    <!-- サイドバー（入退出ログ） -->
+    <div class="sidebar">
+      <h2>入退出ログ</h2>
+      <ul class="log-list">
+        <li v-for="(log, i) in logList" :key="i">{{ log }}</li>
+      </ul>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.link {
-  text-decoration: none;
+/* 全体レイアウト */
+.layout {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  overflow: hidden;
 }
 
-.area {
-  width: 500px;
-  border: 1px solid #000;
+/* メインチャットエリア */
+.chatroom-container {
+  flex: 1;
+  padding: 16px;
+  padding-bottom: 120px; 
+}
+
+.title {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.login-user {
   margin-top: 8px;
+  font-size: 14px;
+  color: #333;
+}
+
+/* チャットメッセージ */
+.chat-list {
+  display: flex;
+  flex-direction: column;
+  height: 400px;
+  overflow-y: auto;
+  margin-top: 16px;
+  padding-right: 8px;
 }
 
 .item {
-  display: block;
+  margin-bottom: 12px;
+  padding: 4px;
+  border-bottom: 1px solid #ccc;
+  word-break: break-word;
 }
 
-.util-ml-8px {
-  margin-left: 8px;
+.meta {
+  font-size: 0.75rem;
+  color: gray;
+}
+
+/* フッター入力欄 */
+.chat-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: calc(100% - 280px); /* サイドバーの幅分を差し引く */
+  background: #f8f8f8;
+  padding: 12px 16px;
+  border-top: 1px solid #ccc;
+}
+
+.textarea {
+  width: 100%;
+  max-width: 100%;
+  border: 1px solid #000;
+  resize: none;
+  padding: 6px;
+  font-size: 14px;
+}
+
+.button-normal {
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.button-area {
+  margin-top: 8px;
+  display: flex;
+  justify-content: space-between; 
+  align-items: center;
+}
+
+.left-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.right-button {
+  display: flex;
 }
 
 .button-exit {
   color: #000;
-  margin-top: 8px;
+}
+
+.link {
+  text-decoration: none;
+}
+
+/* サイドバー */
+.sidebar {
+  width: 250px;
+  background: #f0f0f0;
+  border-left: 1px solid #ccc;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.sidebar h2 {
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+
+.log-list {
+  height: 400px;
+  overflow-y: auto;
+  list-style: none;
+  padding: 0;
+  font-size: 14px;
+  margin: 0;
+}
+
+.log-list li {
+  margin-bottom: 6px;
+  border-bottom: 1px dashed #ccc;
+  padding-bottom: 4px;
 }
 </style>
