@@ -23,9 +23,7 @@ const onEnter = () => {
   if(inputUserName.value ==""){
     alert("ユーザー名を入力ください");
     return;
-  }
-  
-  
+  }  
   // 入室メッセージを送信
    socket.emit("enterEvent",inputUserName.value);
    console.log(inputUserName.value)

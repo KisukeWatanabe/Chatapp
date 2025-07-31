@@ -1,9 +1,13 @@
 <script setup>
 import { inject, ref, reactive, onMounted } from "vue"
+import { useRouter } from "vue-router"
 import socketManager from '../socketManager.js'
 
 // #region global state
 const userName = inject("userName")
+
+// 遷移用ルータ
+const router = useRouter()
 // #endregion
 
 // #ログインが完成するまでの処置
@@ -38,6 +42,10 @@ const onPublish = () => {
 // 退室メッセージをサーバに送信する
 const onExit = () => {
   socket.emit("exitEvent",userName.value)
+}
+
+const onChange = () => {
+  router.push({ name: "task" })
 }
 
 // メモを画面上に表示する
@@ -105,6 +113,9 @@ const registerSocketEvent = () => {
     </div>
     <router-link to="/" class="link">
       <button type="button" class="button-normal button-exit" @click="onExit">退室する</button>
+    </router-link>
+    <router-link to="/task/" class="task">
+      <button type="button" class="button-normal" @click="onChange">タスクへ移動</button>
     </router-link>
   </div>
 </template>
