@@ -97,7 +97,7 @@ const registerSocketEvent = () => {
   <div class="layout">
     <!-- チャットルームメイン -->
     <div class="chatroom-container">
-      <h1 class="title">TASUKU HAA-KUN チャットルーム</h1>
+      <h1 class="title">TASUKU HAA-KUNのチャットルーム</h1>
       <p class="login-user">ログインユーザー：{{ userName }}さん</p>
 
       <div class="chat-list" ref="chatListRef">
