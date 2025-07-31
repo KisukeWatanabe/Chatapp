@@ -74,6 +74,7 @@ const registerSocketEvent = () => {
 }
 // #endregion
 </script>
+
 <template>
   <div class="mx-auto my-5 px-4 text-center">
     <h1 class="text-h3 font-weight-medium">Vue.js タスク一覧</h1>
@@ -133,6 +134,7 @@ const registerSocketEvent = () => {
     </router-link>
   </div>
 </template>
+
 <style scoped>
 .link {
   text-decoration: none;
