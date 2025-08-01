@@ -41,14 +41,13 @@ const onEnter = () => {
 
     <div class="form">
       <label class="label">ユーザー名を入力して下さい</label>
-      <input type="text" v-model="inputUserName" class="input" placeholder="入力してください" />
+      <input type="text" v-model="inputUserName" class="input" placeholder="入力してください" /> 
       <button @click="onEnter" class="button">入室する</button>
     </div>
 
     <img src="../images/image.png" class="character" alt="キャラ画像"/>
   </div>
 </template>
-
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500&display=swap');
