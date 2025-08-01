@@ -1,3 +1,4 @@
+chat.vue
 <script setup>
 import { inject, ref, reactive, onMounted, onBeforeUnmount } from "vue"
 import { useRouter } from "vue-router"
@@ -97,8 +98,6 @@ const registerSocketEvent = () => {
   <div class="layout">
     <!-- チャットルームメイン -->
     <div class="chatroom-container">
-      <h1 class="title">たすく はあくん チャットルーム</h1>
-      <p class="login-user">ログインユーザ：{{ userName }}さん</p>
       <h1 class="title">TASUKU HAA-KUNのチャットルーム</h1>
       <p class="login-user">ログインユーザー：{{ userName }}さん</p>
 
@@ -145,30 +144,40 @@ const registerSocketEvent = () => {
 </template>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c&display=swap');
+
+* {
+ font-family: 'M PLUS Rounded 1c', 'Arial', 'Meiryo', sans-serif;
+  box-sizing: border-box;
+}
+
 /* 全体レイアウト */
 .layout {
   display: flex;
   flex-direction: row;
   height: 100vh;
   overflow: hidden;
+  background-color: #fffaf5;
 }
 
 /* メインチャットエリア */
 .chatroom-container {
   flex: 1;
-  padding: 16px;
-  padding-bottom: 120px; 
+  padding: 20px;
+  padding-bottom: 140px;
 }
 
 .title {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: bold;
+  margin-bottom: 8px;
+  color: #333;
+  background-color: transparent;
 }
 
 .login-user {
-  margin-top: 8px;
   font-size: 14px;
-  color: #333;
+  color: #444;
 }
 
 /* チャットメッセージ */
@@ -177,13 +186,16 @@ const registerSocketEvent = () => {
   flex-direction: column;
   height: 400px;
   overflow-y: auto;
-  margin-top: 16px;
-  padding-right: 8px;
+  margin-top: 20px;
+  padding: 12px;
+  background-color: #ffffffcc;
+  border-radius: 12px;
+  box-shadow: 0 0 4px rgba(0,0,0,0.1);
 }
 
 .item {
-  margin-bottom: 12px;
-  padding: 4px;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
   border-bottom: 1px solid #ccc;
   word-break: break-word;
 }
@@ -191,6 +203,7 @@ const registerSocketEvent = () => {
 .meta {
   font-size: 0.75rem;
   color: gray;
+  margin-bottom: 4px;
 }
 
 /* フッター入力欄 */
@@ -198,28 +211,26 @@ const registerSocketEvent = () => {
   position: fixed;
   bottom: 0;
   left: 0;
-  width: calc(100% - 280px); /* サイドバーの幅分を差し引く */
-  background: #f8f8f8;
-  padding: 12px 16px;
+  width: calc(100% - 310px); /* サイドバーの幅分を差し引く */
+  background: #fefefe;
+  padding: 12px 20px;
   border-top: 1px solid #ccc;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .textarea {
   width: 100%;
-  max-width: 100%;
-  border: 1px solid #000;
-  resize: none;
-  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  padding: 10px 16px;
   font-size: 14px;
+  resize: none;
+  outline: none;
+  background-color: #fff;
 }
 
-.button-normal {
-  padding: 6px 12px;
-  font-size: 14px;
-  cursor: pointer;
-}
 .button-area {
-  margin-top: 8px;
+  margin-top: 10px;
   display: flex;
   justify-content: space-between; 
   align-items: center;
@@ -227,15 +238,37 @@ const registerSocketEvent = () => {
 
 .left-buttons {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
 .right-button {
   display: flex;
 }
 
+/* ボタン共通 */
+.button-normal {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 20px;
+  font-size: 14px;
+  cursor: pointer;
+  background-color: #ffa500;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.button-normal:hover {
+  background-color: #ff8800;
+}
+
+/* 退室ボタン */
 .button-exit {
-  color: #000;
+  background-color: #aaa;
+  color: #fff;
+}
+
+.button-exit:hover {
+  background-color: #888;
 }
 
 .link {
@@ -244,30 +277,35 @@ const registerSocketEvent = () => {
 
 /* サイドバー */
 .sidebar {
-  width: 250px;
+  width: 280px;
   background: #f0f0f0;
   border-left: 1px solid #ccc;
-  padding: 16px;
+  padding: 20px 16px;
   overflow-y: auto;
 }
 
 .sidebar h2 {
   font-size: 18px;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+  color: #333;
 }
 
+/* ログリスト */
 .log-list {
-  height: 400px;
+  height: calc(100vh - 100px);
   overflow-y: auto;
   list-style: none;
   padding: 0;
-  font-size: 14px;
+  font-size: 13px;
   margin: 0;
 }
 
 .log-list li {
-  margin-bottom: 6px;
+  margin-bottom: 10px;
   border-bottom: 1px dashed #ccc;
-  padding-bottom: 4px;
+  padding-bottom: 6px;
+  color: #ffa500;
 }
+
 </style>
+

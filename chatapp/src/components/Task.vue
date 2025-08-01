@@ -186,7 +186,6 @@ const registerSocketEvent = () => {
         </div>
 
         <div v-else>タスクがまだありません</div>
-      タスク担当について
       </div>
     </div>
     <router-link to="/" class="link">
