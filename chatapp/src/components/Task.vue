@@ -139,6 +139,7 @@ const onChangeToChat = () => {
 
 // チャット画面に遷移
 const onChangeToLogin = () => {
+  socket.emit("exitEvent", userName.value)
   saveAllTasksToDB()
   router.push({ name: "login" })
 }
@@ -159,6 +160,11 @@ const onReceivePublish = (data) => {
 }
 
 const registerSocketEvent = () => {
+  // ソケットを一回切っておく
+  socket.off("publishEvent")
+  socket.off("enterEvent")
+  socket.off("exitEvent")
+
   socket.on("enterEvent", (data) => {
     onReceiveEnter(data)
   })
