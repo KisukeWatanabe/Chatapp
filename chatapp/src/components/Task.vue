@@ -1,21 +1,17 @@
 <script setup>
-import { inject, ref, reactive, onMounted, computed } from "vue"
+import { inject, ref, onMounted, computed } from 'vue';
 import { useRouter } from "vue-router"
 import socketManager from '../socketManager.js'
+
 // #region global state
 const userName = inject("userName")
-// 遷移用ルータ
 const router = useRouter()
-// オブジェクトを仮定する
-// #endregion
-// #region local variable
 const socket = socketManager.getInstance()
 // #endregion
+
 // #region reactive variable
 const taskContent = ref("")
-// 初期タスク（投稿で追加）
 const tasks = ref([])
-// 編集モードとテキストモードを切り替えるための変数
 const editIndex = ref(null)
 // #endregion
 
@@ -24,51 +20,59 @@ onMounted(() => {
   registerSocketEvent()
 })
 // #endregion
-// #region browser event handler
-// 全体の進捗度合いについて計算する関数
+
+// 全体進捗
 const overallProgress = computed(() => {
-  const taskList = tasks.value;
-  if (taskList.length === 0) return 0;
-  const totalProgress = taskList.reduce((sum, task) => {
-    return sum + Math.min(Math.max(task.progress, 0), 100); // 0〜100に制限
-  }, 0);
-  return Math.round(totalProgress / taskList.length);
-});
-// ログイン画面まで戻るためのボタン
+  const taskList = tasks.value
+  if (taskList.length === 0) return 0
+  const total = taskList.reduce((sum, task) => {
+    return sum + Math.min(Math.max(task.progress, 0), 100)
+  }, 0)
+  return Math.round(total / taskList.length)
+})
+
+// ステータス取得（リアルタイム表示）
+const getStatus = (progress) => {
+  console.log(progress)
+  console.log("読み込み済み")
+  if (progress == 0) return "未着手"
+  if (progress == 100) return "実施済み"
+  return "実施中"
+}
+
+// チャット画面に遷移
 const onChange = () => {
   router.push({ name: "chat" })
 }
-// ボタンが押されたらタスクをレンジスライダーで表示する
+
+// 投稿ボタン
 const onPublish = () => {
   if (taskContent.value.trim() !== "") {
     tasks.value.push({
       name: taskContent.value,
       progress: 0,
-      assignee: "" // 担当者名の初期値
+      assignee: ""
     })
     taskContent.value = ""
   }
 }
-// サーバから受信した投稿メッセージを画面上に表示する
+
+// ソケットイベント（未実装の onReceiveEnter/onReceiveExit には注意）
 const onReceivePublish = (data) => {
   taskContent.unshift(data)
 }
-// イベント登録をまとめる
+
 const registerSocketEvent = () => {
-  // 入室イベントを受け取ったら実行
   socket.on("enterEvent", (data) => {
     onReceiveEnter(data)
   })
-  // 退室イベントを受け取ったら実行
   socket.on("exitEvent", (data) => {
     onReceiveExit(data)
   })
-  // 投稿イベントを受け取ったら実行
   socket.on("publishEvent", (data) => {
-   onReceivePublish(data)
+    onReceivePublish(data)
   })
 }
-// #endregion
 </script>
 
 <template>
@@ -76,18 +80,20 @@ const registerSocketEvent = () => {
     <h1 class="text-h3 font-weight-medium">タスク一覧</h1>
     <div class="mt-10">
       <p>ログインユーザー：{{ userName }}さん</p>
+
       <div class="wrapper1">
         <div class="container">
           <p>全体の進捗: {{ overallProgress }}%</p>
           <progress :value="overallProgress" max="100"></progress>
         </div>
       </div>
+
       <div class="wrapper2">
         <div class="container">
-          <textarea v-model="taskContent" variant="outlined" placeholder="タスクを入力してください" rows="4" class="area"></textarea>
-            <div class="mt-5">
-              <button class="button-normal" @click="onPublish">投稿</button>
-            </div>
+          <textarea v-model="taskContent" placeholder="タスクを入力してください" rows="4" class="area"></textarea>
+          <div class="mt-5">
+            <button class="button-normal" @click="onPublish">投稿</button>
+          </div>
         </div>
       </div>
 
@@ -95,34 +101,35 @@ const registerSocketEvent = () => {
         <div class="mt-5" v-if="tasks.length !== 0">
           <ul>
             <li class="item mt-4" v-for="(task, i) in tasks" :key="i">
-  <div>{{ task.name }}</div>
+              <div>{{ task.name }}</div>
 
-  <!-- 担当者名（編集モード切替） -->
-  <div @click="editIndex = i" v-if="editIndex !== i">
-    担当者: {{ task.assignee || '（クリックして入力）' }}
-  </div>
+              <!-- 担当者名とステータス -->
+              <div @click="editIndex = i" v-if="editIndex !== i">
+                担当者: {{ task.assignee || '（クリックして入力）' }}
+                <span class="status">（{{ getStatus(task.progress) }}）</span>
+              </div>
+              <input
+                v-else
+                type="text"
+                v-model="task.assignee"
+                @blur="editIndex = null"
+                @keyup.enter="editIndex = null"
+                placeholder="担当者名を入力"
+                class="assignee-input"
+              />
 
-  <input
-    v-else
-    type="text"
-    v-model="task.assignee"
-    @blur="editIndex = null"
-    @keyup.enter="editIndex = null"
-    placeholder="担当者名を入力"
-    class="assignee-input"
-  />
-  
-  <!-- スライダー -->
-  <input type="range" min="0" max="100" step="1" v-model="task.progress" />
-  <p>進捗：{{ task.progress }}%</p>
-</li>
+              <!-- スライダー -->
+              <input type="range" min="0" max="100" step="1" v-model="task.progress" />
+              <p>進捗：{{ task.progress }}%</p>
+            </li>
           </ul>
         </div>
         <div v-else>タスクがまだありません</div>
       </div>
     </div>
+
     <router-link to="/" class="link">
-      <button type="button" class="button-normal button-exit" @click="onExit">退室する</button>
+      <button type="button" class="button-normal button-exit">退室する</button>
     </router-link>
     <router-link to="/chat/" class="chat">
       <button type="button" class="button-normal" @click="onChange">チャットへ移動</button>
@@ -142,7 +149,6 @@ body {
   background-color: #fffaf5;
 }
 
-/* 全体 */
 .mx-auto {
   max-width: 800px;
   margin: 0 auto;
@@ -150,7 +156,6 @@ body {
   background-color: #fffaf5;
 }
 
-/* タイトル・ログインユーザー */
 h1 {
   font-size: 32px;
   font-weight: bold;
@@ -164,7 +169,6 @@ h1 {
   margin-bottom: 24px;
 }
 
-/* タスク進捗バー */
 .container {
   background: #ffffffcc;
   border-radius: 12px;
@@ -189,7 +193,6 @@ progress::-webkit-progress-value {
   border-radius: 8px;
 }
 
-/* タスク入力欄 */
 .area {
   width: 100%;
   border: 1px solid #ccc;
@@ -201,7 +204,6 @@ progress::-webkit-progress-value {
   background-color: #fff;
 }
 
-/* タスク一覧 */
 .item {
   background: #ffffffdd;
   border-radius: 12px;
@@ -220,13 +222,11 @@ progress::-webkit-progress-value {
   width: 100%;
 }
 
-/* スライダー */
 input[type="range"] {
   width: 100%;
   margin-top: 10px;
 }
 
-/* ボタンエリア */
 .button-normal {
   padding: 10px 20px;
   border: none;
@@ -251,7 +251,6 @@ input[type="range"] {
   background-color: #888;
 }
 
-/* リンクボタン */
 .link, .chat {
   text-decoration: none;
   margin-left: 8px;
