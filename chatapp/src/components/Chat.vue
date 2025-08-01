@@ -1,4 +1,3 @@
-chat.vue
 <script setup>
 import { inject, ref, reactive, onMounted, onBeforeUnmount } from "vue"
 import { useRouter } from "vue-router"
