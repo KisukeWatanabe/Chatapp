@@ -2,7 +2,7 @@
 import { inject, ref, onMounted, computed } from 'vue';
 import { useRouter } from "vue-router"
 import socketManager from '../socketManager.js'
-import initSqlJs from 'sql.js'
+//import initSqlJs from 'sql.js'
 
 // #region global state
 const userName = inject("userName")
@@ -18,7 +18,7 @@ const socket = socketManager.getInstance()
 const taskContent = ref("")
 const tasks = ref([])
 //db用
-const taskDB = ref([])  // [{ id, taskName, members, progress, status }]
+//const taskDB = ref([])  // [{ id, taskName, members, progress, status }]
 
 //DB変数
 let db = null
@@ -33,46 +33,46 @@ onMounted(async () => {
   loadTasks()
 })
 //テーブル作成
-function initSchema() {
-  db.run(`CREATE TABLE IF NOT EXISTS taskDB (id INTEGER PRIMARY KEY AUTOINCREMENT, taskName TEXT, members TEXT, progress INTEGER, status TEXT);`)
-  console.log("Database schema initialized.")
-}
+// function initSchema() {
+//   db.run(`CREATE TABLE IF NOT EXISTS taskDB (id INTEGER PRIMARY KEY AUTOINCREMENT, taskName TEXT, members TEXT, progress INTEGER, status TEXT);`)
+//   console.log("Database schema initialized.")
+// }
 //タスクをロードする関数
-function loadTasks() {
-  const result = db.exec('SELECT id, taskName, members, progress, status FROM taskDB')
-  taskDB.value = result[0]?.values ?? []
-    tasks.value = taskDB.value.map(row => ({
-    id: row[0],
-    name: row[1],
-    members: row[2],
-    progress: row[3],
-    status: row[4]
-  }))
-  console.log("Tasks loaded:", tasks.value)
-  console.log("TaskDB loaded:", taskDB.value)
-}
+// function loadTasks() {
+//   const result = db.exec('SELECT id, taskName, members, progress, status FROM taskDB')
+//   taskDB.value = result[0]?.values ?? []
+//     tasks.value = taskDB.value.map(row => ({
+//     id: row[0],
+//     name: row[1],
+//     members: row[2],
+//     progress: row[3],
+//     status: row[4]
+//   }))
+//   console.log("Tasks loaded:", tasks.value)
+//   console.log("TaskDB loaded:", taskDB.value)
+// }
 
-function addTask(taskName) {
-  db.run('INSERT INTO taskDB (taskName, members, progress, status) VALUES (?,?,?,?)', [taskName.value, null,0, "未着手"])
-  //taskContent.value = taskName.value
-  console.log("AT Task added:", taskName.value)
-  loadTasks()
-  saveDatabase()
-}
+// function addTask(taskName) {
+//   db.run('INSERT INTO taskDB (taskName, members, progress, status) VALUES (?,?,?,?)', [taskName.value, null,0, "未着手"])
+//   //taskContent.value = taskName.value
+//   console.log("AT Task added:", taskName.value)
+//   loadTasks()
+//   saveDatabase()
+// }
 
-function saveDatabase() {
-  const data = db.export()
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(data)))
-}
+// function saveDatabase() {
+//   const data = db.export()
+//   localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(data)))
+// }
 
-function loadDatabase(SQL) {
-  const saved = localStorage.getItem(STORAGE_KEY)
-  if (saved) {
-    const bytes = new Uint8Array(JSON.parse(saved))
-    return new SQL.Database(bytes)
-  }
-  return new SQL.Database()
-}
+// function loadDatabase(SQL) {
+//   const saved = localStorage.getItem(STORAGE_KEY)
+//   if (saved) {
+//     const bytes = new Uint8Array(JSON.parse(saved))
+//     return new SQL.Database(bytes)
+//   }
+//   return new SQL.Database()
+// }
 
 
 // #endregion
@@ -110,13 +110,13 @@ const onChange = () => {
 const onPublish = () => {
   if (taskContent.value.trim() !== "") {
     tasks.value.push({
-      id: row[0],
+      //id: row[0],
       name: taskContent.value,
-      members: null,
+      //members: null,
       progress: 0,
       status: "未着"
     })
-    addTask(taskContent)
+    //addTask(taskContent)
     console.log("OP Task added:", taskContent.value)
     taskContent.value = ""
   }
