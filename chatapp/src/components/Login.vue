@@ -36,18 +36,18 @@ const onEnter = () => {
 
 <template>
   <div class="login-container">
+    <h2 class="subtitle">チャットアプリ</h2>
     <h1 class="title">TASUKU HAA-KUN</h1>
 
     <div class="form">
       <label class="label">ユーザー名を入力して下さい</label>
-      <input type="text" v-model="inputUserName" class="input" placeholder="入力してください" />
+      <input type="text" v-model="inputUserName" class="input" placeholder="入力してください" /> 
       <button @click="onEnter" class="button">入室する</button>
     </div>
 
-    <img src="../images/image.png" class="character" alt="キャラ画像" />
+    <img src="../images/image.png" class="character" alt="キャラ画像"/>
   </div>
 </template>
-
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500&display=swap');
@@ -65,6 +65,12 @@ const onEnter = () => {
   font-weight: bold;
   margin-bottom: 40px;
   color: #333;
+}
+.subtitle {
+  font-size: 16px;
+  color: #888;
+  margin-bottom: 4px;
+  letter-spacing: 1px;
 }
 
 .form {
@@ -115,9 +121,9 @@ const onEnter = () => {
 
 .character {
   position: absolute;
-  top: 40px;
-  right: 40px;
-  width: 200px;
+  top: 70px;
+  right: 70px;
+  width: 350px;
   height: auto;
   z-index: 1;
 }

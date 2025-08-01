@@ -1,3 +1,4 @@
+chat.vue
 <script setup>
 import { inject, ref, reactive, onMounted, onBeforeUnmount } from "vue"
 import { useRouter } from "vue-router"
@@ -97,7 +98,7 @@ const registerSocketEvent = () => {
   <div class="layout">
     <!-- チャットルームメイン -->
     <div class="chatroom-container">
-      <h1 class="title">TASUKU HAA-KUN チャットルーム</h1>
+      <h1 class="title">TASUKU HAA-KUNのチャットルーム</h1>
       <p class="login-user">ログインユーザー：{{ userName }}さん</p>
 
       <div class="chat-list" ref="chatListRef">
@@ -307,3 +308,4 @@ const registerSocketEvent = () => {
 }
 
 </style>
+
