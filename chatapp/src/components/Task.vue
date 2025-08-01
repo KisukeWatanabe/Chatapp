@@ -2,7 +2,7 @@
 import { inject, ref, onMounted, computed } from 'vue';
 import { useRouter } from "vue-router"
 import socketManager from '../socketManager.js'
-//import initSqlJs from 'sql.js'
+import initSqlJs from 'sql.js'
 
 // #region global state
 const userName = inject("userName")
@@ -17,8 +17,8 @@ const socket = socketManager.getInstance()
 // #region reactive variable
 const taskContent = ref("")
 const tasks = ref([])
-//db用
-//const taskDB = ref([])  // [{ id, taskName, members, progress, status }]
+const taskDB = ref([])  // [{ id, taskName, members, progress, status }]
+const editIndex = ref(null)
 
 //DB変数
 let db = null
@@ -33,46 +33,69 @@ onMounted(async () => {
   loadTasks()
 })
 //テーブル作成
-// function initSchema() {
-//   db.run(`CREATE TABLE IF NOT EXISTS taskDB (id INTEGER PRIMARY KEY AUTOINCREMENT, taskName TEXT, members TEXT, progress INTEGER, status TEXT);`)
-//   console.log("Database schema initialized.")
-// }
+function initSchema() {
+  db.run(`CREATE TABLE IF NOT EXISTS taskDB (id INTEGER PRIMARY KEY AUTOINCREMENT, taskName TEXT, members TEXT, progress INTEGER, status TEXT);`)
+  console.log("Database schema initialized.")
+}
 //タスクをロードする関数
-// function loadTasks() {
-//   const result = db.exec('SELECT id, taskName, members, progress, status FROM taskDB')
-//   taskDB.value = result[0]?.values ?? []
-//     tasks.value = taskDB.value.map(row => ({
-//     id: row[0],
-//     name: row[1],
-//     members: row[2],
-//     progress: row[3],
-//     status: row[4]
-//   }))
-//   console.log("Tasks loaded:", tasks.value)
-//   console.log("TaskDB loaded:", taskDB.value)
-// }
+function loadTasks() {
+  const result = db.exec('SELECT id, taskName, members, progress, status FROM taskDB')
+  taskDB.value = result[0]?.values ?? []
+  console.log("taskDBへ一旦格納完了")
+    tasks.value = taskDB.value.map(row => ({
+    id: row[0],
+    name: row[1],
+    members: row[2],
+    progress: row[3],
+    status: row[4]
+  }))
+  console.log("Task.vueのtasks配列へ扱いやすい形でDB格納ロード完了")
+}
 
-// function addTask(taskName) {
-//   db.run('INSERT INTO taskDB (taskName, members, progress, status) VALUES (?,?,?,?)', [taskName.value, null,0, "未着手"])
-//   //taskContent.value = taskName.value
-//   console.log("AT Task added:", taskName.value)
-//   loadTasks()
-//   saveDatabase()
-// }
+function addTask(taskName) {
+  // db.run('INSERT INTO taskDB (taskName, members, progress, status) VALUES (?,?,?,?)', [taskName.value, null,0, "未着手"])
+  // console.log("DBへタスク追加:", taskName.value)
+  tasks.value.push({
+    id: tasks.value.length,
+    name: taskName.value,
+    members: null,
+    progress: 0,
+    status: "未着手"
+  })
+  console.log("Task.vueのtasks配列へタスク追加")
+  saveAllTasksToDB()
+  loadTasks()
+}
+function saveAllTasksToDB() {
+  // 1. 既存データをすべて削除
+  db.run('DELETE FROM taskDB')
 
-// function saveDatabase() {
-//   const data = db.export()
-//   localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(data)))
-// }
+  // 2. tasks.value の内容をすべて再挿入
+  for (const task of tasks.value) {
+    db.run(
+      'INSERT INTO taskDB (taskName, members, progress, status) VALUES (?, ?, ?, ?)',
+      [task.name, task.members, task.progress, task.status]
+    )
+  }
 
-// function loadDatabase(SQL) {
-//   const saved = localStorage.getItem(STORAGE_KEY)
-//   if (saved) {
-//     const bytes = new Uint8Array(JSON.parse(saved))
-//     return new SQL.Database(bytes)
-//   }
-//   return new SQL.Database()
-// }
+  console.log("全tasks[]をDBへ再インサート完了")
+  saveDatabase()
+}
+
+function saveDatabase() {
+  const data = db.export()
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(data)))
+  console.log("DBをローカルストレージへ保存完了")
+}
+
+function loadDatabase(SQL) {
+  const saved = localStorage.getItem(STORAGE_KEY)
+  if (saved) {
+    const bytes = new Uint8Array(JSON.parse(saved))
+    return new SQL.Database(bytes)
+  }
+  return new SQL.Database()
+}
 
 
 // #endregion
@@ -96,31 +119,38 @@ const overallProgress = computed(() => {
 const getStatus = (progress) => {
   console.log(progress)
   console.log("読み込み済み")
-  if (progress == 0) return "未着手"
-  if (progress == 100) return "実施済み"
+  if (progress == 0) {
+    tasks.status = "未着手"
+     return "未着手"
+  }
+  if (progress == 100) {
+    tasks.status = "実施済み"
+    return "実施済み"
+  }
+  tasks.status = "実施中"
   return "実施中"
 }
 
 // チャット画面に遷移
-const onChange = () => {
+const onChangeToChat = () => {
+  saveAllTasksToDB()
   router.push({ name: "chat" })
+}
+
+// チャット画面に遷移
+const onChangeToLogin = () => {
+  saveAllTasksToDB()
+  router.push({ name: "login" })
 }
 
 // 投稿ボタン
 const onPublish = () => {
   if (taskContent.value.trim() !== "") {
-    tasks.value.push({
-      //id: row[0],
-      name: taskContent.value,
-      //members: null,
-      progress: 0,
-      status: "未着"
-    })
-    //addTask(taskContent)
-    console.log("OP Task added:", taskContent.value)
+    addTask(taskContent)
+    console.log("OP Task added:", tasks.value)
     taskContent.value = ""
   }
-  console.log()
+  console.log("In onPublish addTask OK")
 }
 
 // ソケットイベント（未実装の onReceiveEnter/onReceiveExit には注意）
@@ -169,13 +199,13 @@ const registerSocketEvent = () => {
 
               <!-- 担当者名とステータス -->
               <div @click="editIndex = i" v-if="editIndex !== i">
-                担当者: {{ task.assignee || '（クリックして入力）' }}
+                担当者: {{ task.members || '（クリックして入力）' }}
                 <span class="status">（{{ getStatus(task.progress) }}）</span>
               </div>
               <input
                 v-else
                 type="text"
-                v-model="task.assignee"
+                v-model="task.members"
                 @blur="editIndex = null"
                 @keyup.enter="editIndex = null"
                 placeholder="担当者名を入力"
@@ -194,10 +224,10 @@ const registerSocketEvent = () => {
     </div>
 
     <router-link to="/" class="link">
-      <button type="button" class="button-normal button-exit">退室する</button>
+      <button type="button" class="button-normal button-exit" @click="onChangeToLogin">退室する</button>
     </router-link>
     <router-link to="/chat/" class="chat">
-      <button type="button" class="button-normal" @click="onChange">チャットへ移動</button>
+      <button type="button" class="button-normal" @click="onChangeToChat">チャットへ移動</button>
     </router-link>
   </div>
 </template>
